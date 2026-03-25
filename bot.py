@@ -4,7 +4,7 @@ import os
 
 API_ID = 37454234        # 🔴 my.telegram.org से लो
 API_HASH = "9d14b26020c10dab5e3e82c211328ae0"
-BOT_TOKEN = "8413113920:AAGkOKoDpiBTKM9lJ2F3WkbvEOfKw2fdfx8"
+BOT_TOKEN = "8413113920:AAGQhaK_6lIjjnjIinQw5f30azHmUSHgdpw"
 
 app = Client("video_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
