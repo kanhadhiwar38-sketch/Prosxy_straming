@@ -5,7 +5,7 @@ import os
 
 routes = web.RouteTableDef()
 
-BOT_TOKEN = "8413113920:AAGkOKoDpiBTKM9lJ2F3WkbvEOfKw2fdfx8"
+BOT_TOKEN = "8413113920:AAGQhaK_6lIjjnjIinQw5f30azHmUSHgdpw"
 DB_FILE = "videos.json"
 
 # 📦 Load DB
