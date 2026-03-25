@@ -33,7 +33,7 @@ async def video_handler(client, message):
     db[new_id] = file_id
     save_db(db)
 
-    link = f"https://YOUR-RENDER-URL.onrender.com/stream/{new_id}"
+    link = f"https://prosxy-straming.onrender.com/stream/{new_id}"
 
     await message.reply_text(
         f"✅ Video Added!\n\n🎬 ID: {new_id}\n🔗 Link: {link}"
