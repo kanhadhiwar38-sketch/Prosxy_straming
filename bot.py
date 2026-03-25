@@ -1,84 +1,42 @@
-import aiohttp
-from aiohttp import web
+from pyrogram import Client, filters
+import json
+import os
 
-routes = web.RouteTableDef()
+API_ID = 37454234        # 🔴 my.telegram.org से लो
+API_HASH = "9d14b26020c10dab5e3e82c211328ae0"
+BOT_TOKEN = "8413113920:AAGkOKoDpiBTKM9lJ2F3WkbvEOfKw2fdfx8"
 
-# 🔑 अपना Telegram Bot Token डालो
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+app = Client("video_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# 🎬 Video ID → Telegram file_id mapping
-video_db = {
-    "315": "AgADQRxxxxxxxxxxxx",  # अपना file_id डालो
-}
+DB_FILE = "videos.json"
 
-# 🏠 Home Route (test)
-@routes.get("/")
-async def home(request):
-    return web.Response(text="Bot Running 🚀")
+# 📦 Load DB
+def load_db():
+    if not os.path.exists(DB_FILE):
+        return {}
+    with open(DB_FILE, "r") as f:
+        return json.load(f)
 
-# 🎬 Stream Route (IMPORTANT)
-@routes.get("/stream/{id}")
-async def stream_handler(request):
-    video_id = request.match_info["id"]
+# 💾 Save DB
+def save_db(data):
+    with open(DB_FILE, "w") as f:
+        json.dump(data, f, indent=4)
 
-    # ❌ Video नहीं मिला
-    if video_id not in video_db:
-        return web.Response(text="Video not found", status=404)
+# 🎬 Video detect (channel/group/forward)
+@app.on_message(filters.video)
+async def video_handler(client, message):
+    db = load_db()
 
-    file_id = video_db[video_id]
+    new_id = str(len(db) + 1)
+    file_id = message.video.file_id
 
-    try:
-        # 📡 Telegram से file_path लो
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={file_id}"
+    db[new_id] = file_id
+    save_db(db)
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                data = await resp.json()
+    link = f"https://YOUR-RENDER-URL.onrender.com/stream/{new_id}"
 
-        if not data.get("ok"):
-            return web.Response(text="Telegram API error", status=500)
+    await message.reply_text(
+        f"✅ Video Added!\n\n🎬 ID: {new_id}\n🔗 Link: {link}"
+    )
 
-        file_path = data["result"]["file_path"]
-
-        # 🚀 Direct Telegram CDN link
-        video_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
-
-        # ⚡ Redirect (NO PROXY = FAST)
-        raise web.HTTPFound(video_url)
-
-    except Exception as e:
-        return web.Response(text=f"Error: {str(e)}", status=500)
-
-
-# 🔐 Optional Secure Route (token system)
-@routes.get("/secure/{id}")
-async def secure_stream(request):
-    video_id = request.match_info["id"]
-    token = request.query.get("token")
-
-    if token != "my_secure_token_123":
-        return web.Response(text="Invalid token", status=403)
-
-    if video_id not in video_db:
-        return web.Response(text="Video not found", status=404)
-
-    file_id = video_db[video_id]
-
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={file_id}"
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            data = await resp.json()
-
-    file_path = data["result"]["file_path"]
-    video_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
-
-    raise web.HTTPFound(video_url)
-
-
-# 🚀 App Start
-app = web.Application()
-app.add_routes(routes)
-
-if __name__ == "__main__":
-    web.run_app(app, port=8080)
+app.run()
